@@ -1,6 +1,7 @@
 // Handle form submission from frontend
 import { saveClientDetails } from "../services/saveClient.js";
 import { getClientsByStatus } from "../services/fetchClient.js";
+import { updateClientStatus as updateClientStatusService } from "../services/updateClient.js";
 
 export const submitContactForm = (req, res) => {
   try {
@@ -77,3 +78,27 @@ export const getFormValue = async (req, res) => {
     }
 };
 
+export const updateClientStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        const result = await updateClientStatusService({
+            id,
+            status,
+        });
+
+        return res.status(result.status_code).json({
+            success: result.status_code === 200,
+            message: result.message,
+            data: result.data,
+        });
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Internal Server Error",
+        });
+    }
+};
