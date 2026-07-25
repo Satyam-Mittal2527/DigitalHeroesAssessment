@@ -12,13 +12,30 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.set("trust proxy", 1);
 // Middleware
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://digital-heroes-assessment-frontend.vercel.app",
+];
+
 app.use(
-    cors({
-        origin: "http://localhost:3000",
-        credentials: true,
-    })
+  cors({
+    origin: function (origin, callback) {
+      // Allow server-to-server requests (no Origin header)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
 );
 
 app.use(express.json());

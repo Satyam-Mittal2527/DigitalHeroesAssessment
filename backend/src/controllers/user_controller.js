@@ -15,18 +15,22 @@ export const loginUser = async (req, res) => {
 
         const { session, user } = result.data;
 
+        const isProduction = process.env.NODE_ENV === "production";
+
         res.cookie("access_token", session.access_token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 1000 * 60 * 60,
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
+            path: "/",
+            maxAge: 1000 * 60 * 60, // 1 hour
         });
 
         res.cookie("refresh_token", session.refresh_token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 1000 * 60 * 60 * 24 * 30,
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
+            path: "/",
+            maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
         });
 
         return res.status(200).json({
@@ -41,7 +45,6 @@ export const loginUser = async (req, res) => {
         });
     }
 };
-
 export const getCurrentUserController = async (req, res) => {
     try {
         const response = await getCurrentUser(req);
