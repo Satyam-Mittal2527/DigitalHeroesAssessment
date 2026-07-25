@@ -1,0 +1,56 @@
+import { loginUserService, getCurrentUser } from "../services/user_services.js";
+
+export const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        const result = await loginUserService({ email, password });
+
+        if (result.status_code !== 200) {
+            return res.status(result.status_code).json({
+                success: false,
+                message: result.message,
+            });
+        }
+
+        const { session, user } = result.data;
+
+        res.cookie("access_token", session.access_token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 1000 * 60 * 60,
+        });
+
+        res.cookie("refresh_token", session.refresh_token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 1000 * 60 * 60 * 24 * 30,
+        });
+
+        return res.status(200).json({
+            success: true,
+            user,
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+export const getCurrentUserController = async (req, res) => {
+    try {
+        const response = await getCurrentUser(req);
+
+        return res.status(response.status_code).json(response);
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
